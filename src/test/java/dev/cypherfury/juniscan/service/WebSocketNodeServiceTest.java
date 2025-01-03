@@ -34,14 +34,14 @@ import static org.mockito.Mockito.*;
  */
 class WebSocketNodeServiceTest {
 
-    private KafkaEventPublisher eventPublisher;
+    private KafkaPublisherService eventPublisher;
     private WebSocketConnectionManager connectionManager;
     private WebSocketNodeService webSocketNodeService;
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
-        eventPublisher = mock(KafkaEventPublisher.class);
+        eventPublisher = mock(KafkaPublisherService.class);
         connectionManager = mock(WebSocketConnectionManager.class);
         objectMapper = mock(ObjectMapper.class);
         webSocketNodeService = new WebSocketNodeService(connectionManager, eventPublisher, objectMapper);

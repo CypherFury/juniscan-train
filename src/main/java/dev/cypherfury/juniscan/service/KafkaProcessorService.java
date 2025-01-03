@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 /**
  * Service for processing new block head events received from Kafka.
  * <p>
- * This class listens to the Kafka topic defined in {@link KafkaEventPublisher#NEW_HEAD_TOPIC}
+ * This class listens to the Kafka topic defined in {@link KafkaPublisherService#NEW_HEAD_TOPIC}
  * and processes {@link NewHeadDTO} messages by fetching the associated block details
  * from the blockchain node using {@link WebSocketNodeService}.
  * <p>
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class NewHeadProcessor {
+public class KafkaProcessorService {
 
     private final WebSocketNodeService webSocketNodeService;
 
@@ -32,7 +32,7 @@ public class NewHeadProcessor {
      *
      * @param webSocketNodeService the service used to interact with the blockchain node.
      */
-    public NewHeadProcessor(WebSocketNodeService webSocketNodeService) {
+    public KafkaProcessorService(WebSocketNodeService webSocketNodeService) {
         this.webSocketNodeService = webSocketNodeService;
     }
 
@@ -40,13 +40,13 @@ public class NewHeadProcessor {
      * Listens to the Kafka topic for new block head events and processes them.
      * <p>
      * This method is invoked automatically whenever a new {@link NewHeadDTO} message
-     * is published to the {@link KafkaEventPublisher#NEW_HEAD_TOPIC}.
+     * is published to the {@link KafkaPublisherService#NEW_HEAD_TOPIC}.
      * It logs the incoming message and delegates the task of fetching block details
      * to the {@link WebSocketNodeService}.
      *
      * @param newHead the {@link NewHeadDTO} object representing the new block head.
      */
-    @KafkaListener(topics = KafkaEventPublisher.NEW_HEAD_TOPIC, groupId = "chain-group")
+    @KafkaListener(topics = KafkaPublisherService.NEW_HEAD_TOPIC, groupId = "chain-group")
     public void processNewHead(NewHeadDTO newHead) {
         log.info("Processing new head: {}", newHead);
         webSocketNodeService.fetchBlockDetails(newHead.getParams().getResult().getParentHash());

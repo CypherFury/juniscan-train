@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for the {@link KafkaEventPublisher} class.
+ * Unit tests for the {@link KafkaPublisherService} class.
  * <p>
  * Responsibilities:
  * - Validate the correct publishing of NewHeadDTO messages to Kafka.
@@ -20,13 +20,13 @@ import static org.mockito.Mockito.*;
  *
  * @author Cypherfury
  */
-class KafkaEventPublisherTest {
+class KafkaPublisherServiceTest {
 
     @Mock
     private KafkaTemplate<String, NewHeadDTO> kafkaTemplate;
 
     @InjectMocks
-    private KafkaEventPublisher kafkaEventPublisher;
+    private KafkaPublisherService kafkaPublisherService;
 
     @Captor
     private ArgumentCaptor<NewHeadDTO> newHeadCaptor;
@@ -44,10 +44,10 @@ class KafkaEventPublisherTest {
         mockNewHead.setMethod("chain_newHead");
 
         // Act
-        kafkaEventPublisher.publishNewHead(mockNewHead);
+        kafkaPublisherService.publishNewHead(mockNewHead);
 
         // Assert
-        verify(kafkaTemplate, times(1)).send(eq(KafkaEventPublisher.NEW_HEAD_TOPIC), newHeadCaptor.capture());
+        verify(kafkaTemplate, times(1)).send(eq(KafkaPublisherService.NEW_HEAD_TOPIC), newHeadCaptor.capture());
         NewHeadDTO capturedNewHead = newHeadCaptor.getValue();
         assertEquals("2.0", capturedNewHead.getJsonrpc());
         assertEquals("chain_newHead", capturedNewHead.getMethod());
@@ -61,9 +61,9 @@ class KafkaEventPublisherTest {
         mockNewHead.setMethod("chain_newHead");
 
         // Act
-        kafkaEventPublisher.publishNewHead(mockNewHead);
+        kafkaPublisherService.publishNewHead(mockNewHead);
 
         // Assert
-        verify(kafkaTemplate, times(1)).send(eq(KafkaEventPublisher.NEW_HEAD_TOPIC), any(NewHeadDTO.class));
+        verify(kafkaTemplate, times(1)).send(eq(KafkaPublisherService.NEW_HEAD_TOPIC), any(NewHeadDTO.class));
     }
 }

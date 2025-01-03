@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class KafkaEventPublisher {
+public class KafkaPublisherService {
 
     /**
      * The Kafka topic used for publishing new block head events.
@@ -33,7 +33,7 @@ public class KafkaEventPublisher {
      *
      * @param kafkaTemplate the {@link KafkaTemplate} used to send messages to Kafka.
      */
-    public KafkaEventPublisher(KafkaTemplate<String, NewHeadDTO> kafkaTemplate) {
+    public KafkaPublisherService(KafkaTemplate<String, NewHeadDTO> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 

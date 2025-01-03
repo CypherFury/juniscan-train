@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for the {@link NewHeadProcessor} class.
+ * Unit tests for the {@link KafkaProcessorService} class.
  * <p>
  * Responsibilities:
  * - Validate the processing of NewHeadDTO messages.
@@ -21,13 +21,13 @@ import static org.mockito.Mockito.*;
  *
  * @author Cypherfury
  */
-class NewHeadProcessorTest {
+class KafkaProcessorServiceTest {
 
     @Mock
     private WebSocketNodeService webSocketNodeService;
 
     @InjectMocks
-    private NewHeadProcessor newHeadProcessor;
+    private KafkaProcessorService kafkaProcessorService;
 
     @Captor
     private ArgumentCaptor<String> blockHashCaptor;
@@ -48,7 +48,7 @@ class NewHeadProcessorTest {
         newHead.setParams(params);
 
         // Act
-        newHeadProcessor.processNewHead(newHead);
+        kafkaProcessorService.processNewHead(newHead);
 
         // Assert
         verify(webSocketNodeService, times(1)).fetchBlockDetails(blockHashCaptor.capture());
@@ -61,7 +61,7 @@ class NewHeadProcessorTest {
         // (No setup needed for this test)
 
         // Act
-        KafkaListener kafkaListener = NewHeadProcessor.class
+        KafkaListener kafkaListener = KafkaProcessorService.class
                 .getMethod("processNewHead", NewHeadDTO.class)
                 .getAnnotation(KafkaListener.class);
 

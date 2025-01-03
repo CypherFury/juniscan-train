@@ -38,7 +38,7 @@ public class WebSocketNodeService {
     private static final int SUBSCRIPTION_ID = 1;
 
     private final WebSocketConnectionManager connectionManager;
-    private final KafkaEventPublisher eventPublisher;
+    private final KafkaPublisherService eventPublisher;
     private final ObjectMapper objectMapper;
 
     /**
@@ -49,7 +49,7 @@ public class WebSocketNodeService {
      * @param objectMapper      JSON parser and serializer.
      */
     public WebSocketNodeService(WebSocketConnectionManager connectionManager,
-                                KafkaEventPublisher eventPublisher,
+                                KafkaPublisherService eventPublisher,
                                 ObjectMapper objectMapper) {
         this.eventPublisher = eventPublisher;
         this.objectMapper = objectMapper;
