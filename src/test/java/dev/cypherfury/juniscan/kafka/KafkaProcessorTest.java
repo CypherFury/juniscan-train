@@ -1,6 +1,7 @@
-package dev.cypherfury.juniscan.service;
+package dev.cypherfury.juniscan.kafka;
 
 import dev.cypherfury.juniscan.dto.NewHeadDTO;
+import dev.cypherfury.juniscan.service.WebSocketNodeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -11,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for the {@link KafkaProcessorService} class.
+ * Unit tests for the {@link KafkaProcessor} class.
  * <p>
  * Responsibilities:
  * - Validate the processing of NewHeadDTO messages.
@@ -21,13 +22,13 @@ import static org.mockito.Mockito.*;
  *
  * @author Cypherfury
  */
-class KafkaProcessorServiceTest {
+class KafkaProcessorTest {
 
     @Mock
     private WebSocketNodeService webSocketNodeService;
 
     @InjectMocks
-    private KafkaProcessorService kafkaProcessorService;
+    private KafkaProcessor kafkaProcessor;
 
     @Captor
     private ArgumentCaptor<String> blockHashCaptor;
@@ -48,7 +49,7 @@ class KafkaProcessorServiceTest {
         newHead.setParams(params);
 
         // Act
-        kafkaProcessorService.processNewHead(newHead);
+        kafkaProcessor.processNewHead(newHead);
 
         // Assert
         verify(webSocketNodeService, times(1)).fetchBlockDetails(blockHashCaptor.capture());
@@ -61,7 +62,7 @@ class KafkaProcessorServiceTest {
         // (No setup needed for this test)
 
         // Act
-        KafkaListener kafkaListener = KafkaProcessorService.class
+        KafkaListener kafkaListener = KafkaProcessor.class
                 .getMethod("processNewHead", NewHeadDTO.class)
                 .getAnnotation(KafkaListener.class);
 

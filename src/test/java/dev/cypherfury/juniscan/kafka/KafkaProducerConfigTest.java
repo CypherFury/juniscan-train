@@ -1,4 +1,4 @@
-package dev.cypherfury.juniscan.config;
+package dev.cypherfury.juniscan.kafka;
 
 import dev.cypherfury.juniscan.dto.NewHeadDTO;
 import org.apache.kafka.clients.producer.ProducerConfig;

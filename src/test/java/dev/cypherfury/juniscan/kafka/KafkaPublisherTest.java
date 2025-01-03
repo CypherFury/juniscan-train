@@ -1,4 +1,4 @@
-package dev.cypherfury.juniscan.service;
+package dev.cypherfury.juniscan.kafka;
 
 import dev.cypherfury.juniscan.dto.NewHeadDTO;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for the {@link KafkaPublisherService} class.
+ * Unit tests for the {@link KafkaPublisher} class.
  * <p>
  * Responsibilities:
  * - Validate the correct publishing of NewHeadDTO messages to Kafka.
@@ -20,13 +20,13 @@ import static org.mockito.Mockito.*;
  *
  * @author Cypherfury
  */
-class KafkaPublisherServiceTest {
+class KafkaPublisherTest {
 
     @Mock
     private KafkaTemplate<String, NewHeadDTO> kafkaTemplate;
 
     @InjectMocks
-    private KafkaPublisherService kafkaPublisherService;
+    private KafkaPublisher kafkaPublisher;
 
     @Captor
     private ArgumentCaptor<NewHeadDTO> newHeadCaptor;
@@ -44,10 +44,10 @@ class KafkaPublisherServiceTest {
         mockNewHead.setMethod("chain_newHead");
 
         // Act
-        kafkaPublisherService.publishNewHead(mockNewHead);
+        kafkaPublisher.publishNewHead(mockNewHead);
 
         // Assert
-        verify(kafkaTemplate, times(1)).send(eq(KafkaPublisherService.NEW_HEAD_TOPIC), newHeadCaptor.capture());
+        verify(kafkaTemplate, times(1)).send(eq(KafkaPublisher.NEW_HEAD_TOPIC), newHeadCaptor.capture());
         NewHeadDTO capturedNewHead = newHeadCaptor.getValue();
         assertEquals("2.0", capturedNewHead.getJsonrpc());
         assertEquals("chain_newHead", capturedNewHead.getMethod());
@@ -61,9 +61,9 @@ class KafkaPublisherServiceTest {
         mockNewHead.setMethod("chain_newHead");
 
         // Act
-        kafkaPublisherService.publishNewHead(mockNewHead);
+        kafkaPublisher.publishNewHead(mockNewHead);
 
         // Assert
-        verify(kafkaTemplate, times(1)).send(eq(KafkaPublisherService.NEW_HEAD_TOPIC), any(NewHeadDTO.class));
+        verify(kafkaTemplate, times(1)).send(eq(KafkaPublisher.NEW_HEAD_TOPIC), any(NewHeadDTO.class));
     }
 }

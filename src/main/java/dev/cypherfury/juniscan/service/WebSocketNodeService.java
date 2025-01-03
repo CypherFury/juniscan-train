@@ -3,6 +3,7 @@ package dev.cypherfury.juniscan.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.cypherfury.juniscan.kafka.KafkaPublisher;
 import dev.cypherfury.juniscan.dto.BlockDetailsDTO;
 import dev.cypherfury.juniscan.dto.NewHeadDTO;
 import dev.cypherfury.juniscan.exception.*;
@@ -38,7 +39,7 @@ public class WebSocketNodeService {
     private static final int SUBSCRIPTION_ID = 1;
 
     private final WebSocketConnectionManager connectionManager;
-    private final KafkaPublisherService eventPublisher;
+    private final KafkaPublisher eventPublisher;
     private final ObjectMapper objectMapper;
 
     /**
@@ -49,7 +50,7 @@ public class WebSocketNodeService {
      * @param objectMapper      JSON parser and serializer.
      */
     public WebSocketNodeService(WebSocketConnectionManager connectionManager,
-                                KafkaPublisherService eventPublisher,
+                                KafkaPublisher eventPublisher,
                                 ObjectMapper objectMapper) {
         this.eventPublisher = eventPublisher;
         this.objectMapper = objectMapper;

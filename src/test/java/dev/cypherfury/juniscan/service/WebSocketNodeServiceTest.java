@@ -3,6 +3,7 @@ package dev.cypherfury.juniscan.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.cypherfury.juniscan.kafka.KafkaPublisher;
 import dev.cypherfury.juniscan.dto.BlockDetailsDTO;
 import dev.cypherfury.juniscan.dto.NewHeadDTO;
 import dev.cypherfury.juniscan.exception.HandleBlockDetailsException;
@@ -34,14 +35,14 @@ import static org.mockito.Mockito.*;
  */
 class WebSocketNodeServiceTest {
 
-    private KafkaPublisherService eventPublisher;
+    private KafkaPublisher eventPublisher;
     private WebSocketConnectionManager connectionManager;
     private WebSocketNodeService webSocketNodeService;
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
-        eventPublisher = mock(KafkaPublisherService.class);
+        eventPublisher = mock(KafkaPublisher.class);
         connectionManager = mock(WebSocketConnectionManager.class);
         objectMapper = mock(ObjectMapper.class);
         webSocketNodeService = new WebSocketNodeService(connectionManager, eventPublisher, objectMapper);

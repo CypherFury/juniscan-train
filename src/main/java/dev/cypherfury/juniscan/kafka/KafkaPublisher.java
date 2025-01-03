@@ -1,4 +1,4 @@
-package dev.cypherfury.juniscan.service;
+package dev.cypherfury.juniscan.kafka;
 
 import dev.cypherfury.juniscan.dto.NewHeadDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class KafkaPublisherService {
+public class KafkaPublisher {
 
     /**
      * The Kafka topic used for publishing new block head events.
@@ -33,7 +33,7 @@ public class KafkaPublisherService {
      *
      * @param kafkaTemplate the {@link KafkaTemplate} used to send messages to Kafka.
      */
-    public KafkaPublisherService(KafkaTemplate<String, NewHeadDTO> kafkaTemplate) {
+    public KafkaPublisher(KafkaTemplate<String, NewHeadDTO> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
