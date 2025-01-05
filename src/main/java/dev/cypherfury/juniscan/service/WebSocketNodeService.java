@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Handles business logic related to blockchain events received via WebSocket.
@@ -41,6 +41,7 @@ public class WebSocketNodeService {
     private final WebSocketConnectionManager connectionManager;
     private final KafkaPublisher eventPublisher;
     private final ObjectMapper objectMapper;
+    private final BlockService blockService;
 
     /**
      * Constructor to initialize the service with required dependencies.
@@ -51,10 +52,11 @@ public class WebSocketNodeService {
      */
     public WebSocketNodeService(WebSocketConnectionManager connectionManager,
                                 KafkaPublisher eventPublisher,
-                                ObjectMapper objectMapper) {
+                                ObjectMapper objectMapper, BlockService blockService) {
         this.eventPublisher = eventPublisher;
         this.objectMapper = objectMapper;
         this.connectionManager = connectionManager;
+        this.blockService = blockService;
     }
 
     /**
@@ -129,9 +131,9 @@ public class WebSocketNodeService {
         try {
             BlockDetailsDTO blockDetails = objectMapper.treeToValue(jsonNode.get(RESULT_FIELD), BlockDetailsDTO.class);
             log.info("Processing block details: {}", blockDetails);
-            if (blockDetails.getBlock() != null) {
-                log.info("Extrinsics: {}", Arrays.toString(blockDetails.getBlock().getExtrinsics()));
-                // TODO: Add block service to analyze, decode & save in DB
+            BlockDetailsDTO.Block block = Objects.requireNonNull(blockDetails.getBlock());
+            if (!blockService.alreadyExist(block)) {
+                blockService.decodeAndSave(block);
             } else {
                 log.warn("Block details are null for the provided block.");
             }
@@ -173,4 +175,5 @@ public class WebSocketNodeService {
             throw new SendSocketMessageException(blockHash, e);
         }
     }
+
 }
