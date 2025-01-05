@@ -45,7 +45,8 @@ class WebSocketNodeServiceTest {
         eventPublisher = mock(KafkaPublisher.class);
         connectionManager = mock(WebSocketConnectionManager.class);
         objectMapper = mock(ObjectMapper.class);
-        webSocketNodeService = new WebSocketNodeService(connectionManager, eventPublisher, objectMapper);
+        BlockService blockService = mock(BlockService.class);
+        webSocketNodeService = new WebSocketNodeService(connectionManager, eventPublisher, objectMapper, blockService);
     }
 
     @Test
