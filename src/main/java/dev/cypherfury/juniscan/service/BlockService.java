@@ -75,4 +75,13 @@ public class BlockService {
                 .build();
     }
 
+    /**
+     * Find all saved blocks
+     *
+     * @return an Iterable of Blocks.
+     */
+    public Iterable<Block> findAll() {
+        return blockRepository.findAll();
+    }
+
 }

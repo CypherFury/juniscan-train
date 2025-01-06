@@ -1,5 +1,6 @@
 package dev.cypherfury.juniscan.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -49,6 +50,7 @@ public class Extrinsic {
      * The block containing this extrinsic.
      * Represents a many-to-one relationship with the {@link Block} entity.
      */
+    @JsonIgnore
     @ManyToOne
     private Block block;
 

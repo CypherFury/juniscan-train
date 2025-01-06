@@ -1,5 +1,6 @@
 package dev.cypherfury.juniscan.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -45,6 +46,7 @@ public class Module {
      * - Cascading operations ensure that creating, updating, or deleting a module also propagates to its functions.
      * - Orphan removal ensures that functions no longer associated with a module are automatically deleted.
      */
+    @JsonIgnore
     @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Function> functions;
 
@@ -53,6 +55,7 @@ public class Module {
      * This represents a one-to-many relationship with the {@link Extrinsic} entity. Each module can have
      * multiple extrinsics tied to it, and this relationship is critical to the overall extrinsic structure.
      */
+    @JsonIgnore
     @OneToMany(mappedBy = "module")
     private List<Extrinsic> extrinsics;
 

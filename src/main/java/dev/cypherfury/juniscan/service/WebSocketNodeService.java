@@ -49,10 +49,11 @@ public class WebSocketNodeService {
      * @param eventPublisher    Kafka event publisher for blockchain events.
      * @param connectionManager Manages WebSocket connections and message sending.
      * @param objectMapper      JSON parser and serializer.
+     * @param blockService      The service to manage blocks.
      */
     public WebSocketNodeService(WebSocketConnectionManager connectionManager,
-                                KafkaPublisher eventPublisher,
-                                ObjectMapper objectMapper, BlockService blockService) {
+                                KafkaPublisher eventPublisher, ObjectMapper objectMapper,
+                                BlockService blockService) {
         this.eventPublisher = eventPublisher;
         this.objectMapper = objectMapper;
         this.connectionManager = connectionManager;
@@ -131,11 +132,11 @@ public class WebSocketNodeService {
         try {
             BlockDetailsDTO blockDetails = objectMapper.treeToValue(jsonNode.get(RESULT_FIELD), BlockDetailsDTO.class);
             log.info("Processing block details: {}", blockDetails);
-            BlockDetailsDTO.Block block = Objects.requireNonNull(blockDetails.getBlock());
-            if (!blockService.alreadyExist(block)) {
+            BlockDetailsDTO.Block block = blockDetails.getBlock();
+            if (block != null && !blockService.alreadyExist(block)) {
                 blockService.decodeAndSave(block);
             } else {
-                log.warn("Block details are null for the provided block.");
+                log.warn("Block details are null for the provided block, or the block already exist in DB.");
             }
         } catch (JsonProcessingException e) {
             throw new HandleBlockDetailsException(jsonNode, e);

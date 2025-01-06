@@ -1,5 +1,6 @@
 package dev.cypherfury.juniscan.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -45,6 +46,7 @@ public class Function {
      * This represents a many-to-one relationship with the {@link Module} entity. Each function is associated
      * with exactly one module, and this relationship is managed through the `module_id` column.
      */
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "module_id", nullable = false)
     private Module module;
@@ -54,6 +56,7 @@ public class Function {
      * This represents a one-to-many relationship with the {@link Extrinsic} entity. Each function can be invoked
      * as part of multiple extrinsics.
      */
+    @JsonIgnore
     @OneToMany(mappedBy = "function")
     private List<Extrinsic> extrinsics;
 
