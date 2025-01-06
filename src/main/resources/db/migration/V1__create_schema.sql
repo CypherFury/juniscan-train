@@ -40,9 +40,7 @@ CREATE TABLE function
 CREATE TABLE extrinsic
 (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,     -- Auto-incremented primary key for each extrinsic
-    header      INT     NOT NULL,                      -- Header information for the extrinsic
     signed      BOOLEAN NOT NULL,                      -- Indicates if the extrinsic is signed
-    version     INT     NOT NULL,                      -- Version of the extrinsic
     size        BIGINT  NOT NULL,                      -- Size of the extrinsic in bytes
     value       VARCHAR(255),                          -- Optional value payload for the extrinsic
     block_id    BIGINT,                                -- Foreign key referencing the block table

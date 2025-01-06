@@ -58,6 +58,15 @@ public class BlockService {
     }
 
     /**
+     * Find all saved blocks
+     *
+     * @return an Iterable of Blocks.
+     */
+    public Iterable<Block> findAll() {
+        return blockRepository.findAll();
+    }
+
+    /**
      * Builds a `Block` entity from block details and associated extrinsics.
      *
      * @param blockDTO DTO containing the block header and extrinsics data.
@@ -73,15 +82,6 @@ public class BlockService {
                 .number(blockDTO.getHeader().getNumber())
                 .extrinsics(extrinsics)
                 .build();
-    }
-
-    /**
-     * Find all saved blocks
-     *
-     * @return an Iterable of Blocks.
-     */
-    public Iterable<Block> findAll() {
-        return blockRepository.findAll();
     }
 
 }

@@ -33,13 +33,7 @@ public class Extrinsic {
     private long id;
 
     @Column(nullable = false)
-    private int header;
-
-    @Column(nullable = false)
     private boolean signed;
-
-    @Column(nullable = false)
-    private int version;
 
     @Column(nullable = false)
     private long size;

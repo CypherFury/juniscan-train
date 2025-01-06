@@ -18,16 +18,32 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Manages the WebSocket connection to the blockchain node.
  * <p>
  * Responsibilities:
  * - Establish and maintain the WebSocket connection.
- * - Forward incoming messages to WebSocketNodeService for processing.
+ * - Forward incoming messages to {@link WebSocketNodeService} for processing.
  * - Handle WebSocket lifecycle events and errors.
+ * <p>
+ * Improvements:
+ * - Prevents multiple threads from attempting reconnection simultaneously.
+ * - Uses {@link ScheduledExecutorService} for reconnection attempts to ensure proper thread management.
+ * - Ensures a single active WebSocket connection at all times.
+ * <p>
+ * Dependencies:
+ * - {@link Sleeper} for introducing delays between reconnection attempts.
+ * - {@link WebSocketNodeService} for handling blockchain events.
+ * <p>
+ * Usage:
+ * - Automatically initialized by Spring via the `@Service` annotation.
+ * - Manages connection lifecycle and reestablishes connection if interrupted.
  *
- *  @author Cypherfury
+ * @author Cypherfury
  */
 @Service
 @Slf4j
@@ -42,12 +58,16 @@ public class WebSocketConnectionManager extends TextWebSocketHandler {
     private WebSocketSession currentSession;
 
     private static final int RECONNECT_DELAY_MS = 5000;
+    private final ScheduledExecutorService reconnectExecutor = Executors.newSingleThreadScheduledExecutor();
+
+    private final Object lock = new Object();
 
     /**
      * Constructor to initialize the WebSocketConnectionManager.
      *
      * @param rpcUrl     The WebSocket URL of the blockchain node.
      * @param nodeService The service that processes blockchain events.
+     * @param sleeper    Utility for introducing delays in reconnection attempts.
      */
     public WebSocketConnectionManager(@Value("${rpc.url}") String rpcUrl,
                                       @Lazy WebSocketNodeService nodeService,
@@ -63,24 +83,46 @@ public class WebSocketConnectionManager extends TextWebSocketHandler {
      */
     @PostConstruct
     public void initializeConnection() {
+        if (currentSession != null && currentSession.isOpen()) {
+            log.info("WebSocket session already open. Skipping new connection.");
+            return;
+        }
         log.info("Initializing WebSocket connection...");
-        StandardWebSocketClient webSocketClient = new StandardWebSocketClient();
-        webSocketClient.execute(this, rpcUrl);
+        connect();
+    }
+
+    /**
+     * Establishes a new WebSocket connection.
+     */
+    private void connect() {
+        synchronized (lock) {
+            try {
+                log.info("Attempting to open WebSocket connection...");
+                StandardWebSocketClient webSocketClient = new StandardWebSocketClient();
+                webSocketClient.execute(this, rpcUrl);
+            } catch (Exception e) {
+                log.error("Failed to establish WebSocket connection: {}", e.getMessage());
+                scheduleReconnect();
+            }
+        }
     }
 
     /**
      * Called when the WebSocket connection is established.
-     * Delegates subscription handling to WebSocketNodeService.
+     * Delegates subscription handling to {@link WebSocketNodeService}.
      */
     @Override
-    public void afterConnectionEstablished(@NonNull WebSocketSession session) {
+    public synchronized void afterConnectionEstablished(@NonNull WebSocketSession session) {
         log.info("WebSocket connection established.");
         currentSession = session;
         nodeService.onConnectionEstablished();
     }
 
     /**
-     * Handles incoming WebSocket messages and forwards them to WebSocketNodeService for processing.
+     * Handles incoming WebSocket messages and forwards them to {@link WebSocketNodeService} for processing.
+     *
+     * @param session The active WebSocket session.
+     * @param message The incoming message.
      */
     @Override
     protected void handleTextMessage(@NonNull WebSocketSession session, TextMessage message) {
@@ -91,6 +133,9 @@ public class WebSocketConnectionManager extends TextWebSocketHandler {
 
     /**
      * Handles transport-level errors during WebSocket communication.
+     *
+     * @param session   The active WebSocket session.
+     * @param exception The exception that occurred.
      */
     @Override
     public void handleTransportError(@NonNull WebSocketSession session, Throwable exception) {
@@ -100,13 +145,23 @@ public class WebSocketConnectionManager extends TextWebSocketHandler {
 
     /**
      * Called when the WebSocket connection is closed.
-     * Logs the reason and optionally triggers a reconnection attempt.
+     * Logs the reason and triggers a reconnection attempt.
+     *
+     * @param session The closed WebSocket session.
+     * @param status  The close status.
      */
     @Override
-    public void afterConnectionClosed(@NonNull WebSocketSession session, CloseStatus status) {
+    public synchronized void afterConnectionClosed(@NonNull WebSocketSession session, CloseStatus status) {
         log.info("WebSocket connection closed: {}", status.getReason());
-        currentSession = null;
-        retryConnection();
+        currentSession = null; // Reset the session
+        scheduleReconnect();
+    }
+
+    /**
+     * Schedules a reconnection attempt to the WebSocket server.
+     */
+    private void scheduleReconnect() {
+        reconnectExecutor.schedule(this::connect, RECONNECT_DELAY_MS, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -115,7 +170,7 @@ public class WebSocketConnectionManager extends TextWebSocketHandler {
      * @param message The JSON-RPC message to send.
      * @throws IOException if there is an error sending the message.
      */
-    public void sendMessage(String message) throws IOException {
+    public synchronized void sendMessage(String message) throws IOException {
         if (currentSession != null && currentSession.isOpen()) {
             currentSession.sendMessage(new TextMessage(message));
         } else {
@@ -123,31 +178,4 @@ public class WebSocketConnectionManager extends TextWebSocketHandler {
             throw new IllegalStateException("WebSocket session is closed.");
         }
     }
-
-    /**
-     * Initiates a reconnection attempt to the WebSocket server.
-     */
-    private void retryConnection() {
-        new Thread(() -> {
-            while (currentSession == null) {
-                tryToReconnect();
-            }
-        }).start();
-    }
-
-    /**
-     * Tries to reconnect to the WebSocket server with a delay between attempts.
-     */
-    private void tryToReconnect() {
-        try {
-            log.info("Attempting to reconnect to WebSocket...");
-            sleeper.sleep(RECONNECT_DELAY_MS);
-            StandardWebSocketClient webSocketClient = new StandardWebSocketClient();
-            webSocketClient.execute(this, rpcUrl);
-        } catch (InterruptedException e) {
-            log.error("Reconnection attempt failed: {}", e.getMessage());
-            throw new ReconnectWebSocketException(e);
-        }
-    }
-
 }

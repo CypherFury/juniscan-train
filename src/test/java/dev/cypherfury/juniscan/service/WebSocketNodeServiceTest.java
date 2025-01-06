@@ -35,6 +35,7 @@ import static org.mockito.Mockito.*;
  */
 class WebSocketNodeServiceTest {
 
+    private BlockService blockService;
     private KafkaPublisher eventPublisher;
     private WebSocketConnectionManager connectionManager;
     private WebSocketNodeService webSocketNodeService;
@@ -45,7 +46,7 @@ class WebSocketNodeServiceTest {
         eventPublisher = mock(KafkaPublisher.class);
         connectionManager = mock(WebSocketConnectionManager.class);
         objectMapper = mock(ObjectMapper.class);
-        BlockService blockService = mock(BlockService.class);
+        blockService = mock(BlockService.class);
         webSocketNodeService = new WebSocketNodeService(connectionManager, eventPublisher, objectMapper, blockService);
     }
 
@@ -114,6 +115,50 @@ class WebSocketNodeServiceTest {
 
         // Assert
         verify(eventPublisher, times(1)).publishNewHead(any());
+    }
+
+    @Test
+    void testHandleBlockDetailsResponse_BlockAlreadyExists() throws JsonProcessingException {
+        // Arrange
+        String responsePayload = """
+            {
+              "id": 2,
+              "result": {
+                "block": {
+                  "header": {
+                    "number": "1234",
+                    "parentHash": "parent-hash",
+                    "stateRoot": "state-root",
+                    "extrinsicsRoot": "extrinsics-root",
+                    "digest": {
+                      "logs": []
+                    }
+                  },
+                  "extrinsics": ["extrinsic1", "extrinsic2"]
+                }
+              }
+            }
+            """;
+        BlockDetailsDTO.Block mockBlock = new BlockDetailsDTO.Block();
+        mockBlock.setExtrinsics(new String[]{"extrinsic1", "extrinsic2"});
+        mockBlock.setHeader(new BlockDetailsDTO.Block.Header());
+        mockBlock.getHeader().setNumber("1234");
+        BlockDetailsDTO blockDetailsDTO = mock(BlockDetailsDTO.class);
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode = mapper.readTree(responsePayload);
+
+        when(objectMapper.readTree(anyString())).thenReturn(jsonNode);
+        when(objectMapper.treeToValue(jsonNode.get("result"), BlockDetailsDTO.class))
+                .thenReturn(blockDetailsDTO);
+        when(blockService.alreadyExist(mockBlock)).thenReturn(true);
+
+        // Act
+        webSocketNodeService.processMessage(responsePayload);
+
+        // Assert
+        verify(blockService, times(1)).alreadyExist(mockBlock);
+        verify(blockService, never()).decodeAndSave(mockBlock); // Should not decode or save
+        verifyNoInteractions(eventPublisher);
     }
 
 

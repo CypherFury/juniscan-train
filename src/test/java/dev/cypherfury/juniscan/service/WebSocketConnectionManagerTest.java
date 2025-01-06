@@ -68,30 +68,6 @@ class WebSocketConnectionManagerTest {
     }
 
     @Test
-    void retryConnection_shouldCallTryToReconnectWhenCurrentSessionIsNotOpen() throws InterruptedException {
-        // Arrange
-        WebSocketSession sessionMock = mock(WebSocketSession.class);
-        when(sessionMock.isOpen()).thenReturn(true);
-        manager.setCurrentSession(sessionMock);
-        doNothing().when(sleeper).sleep(anyLong());
-
-        doAnswer(_ -> {
-            when(sessionMock.isOpen()).thenReturn(false);
-            manager.setCurrentSession(sessionMock);
-            return null;
-        }).when(sleeper).sleep(anyLong());
-
-        Thread testThread = new Thread(() -> manager.afterConnectionClosed(session, CloseStatus.SERVER_ERROR));
-
-        // Act
-        testThread.start();
-        testThread.join(100);
-
-        // Assert
-        verify(sleeper, atLeastOnce()).sleep(5000);
-    }
-
-    @Test
     void testAfterConnectionEstablished() {
         // Arrange
 
