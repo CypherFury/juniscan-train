@@ -36,9 +36,26 @@ public class Extrinsic {
     private boolean signed;
 
     @Column(nullable = false)
+    private int version;
+
+    @Column(nullable = false)
     private long size;
 
-    private String value;
+    private String addressPrefix;
+
+    private String issuerAddress;
+
+    private String signatureType;
+
+    private String signature;
+
+    private Integer eraPeriod;
+
+    private Integer eraPhase;
+
+    private Long nonce;
+
+    private Long tip;
 
     /**
      * The block containing this extrinsic.

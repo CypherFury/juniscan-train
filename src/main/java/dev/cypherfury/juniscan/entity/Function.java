@@ -60,4 +60,14 @@ public class Function {
     @OneToMany(mappedBy = "function")
     private List<Extrinsic> extrinsics;
 
+
+    /**
+     * List of parameters associated with this function.
+     * <p>
+     * Represents a one-to-many relationship between a function and its parameters.
+     * Each parameter contains metadata about its name, type, and relationship to the function.
+     */
+    @OneToMany(mappedBy = "function")
+    private List<FunctionParameter> parameters;
+
 }

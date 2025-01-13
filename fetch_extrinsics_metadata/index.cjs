@@ -15,10 +15,12 @@ function generateModuleSql(pallets) {
   return sql.trim().slice(0, -1) + ';\n';
 }
 
-// Generate SQL for extrinsics
-function generateExtrinsicSql(api, pallets) {
-  let sql = `-- Populate the function table with explicit IDs\nINSERT INTO function (id, module_id, call_index, name, description) VALUES\n`;
+// Generate SQL for extrinsics and their arguments
+function generateExtrinsicAndArgumentSql(api, pallets) {
+  let extrinsicSql = `-- Populate the function table with explicit IDs\nINSERT INTO function (id, module_id, call_index, name, description) VALUES\n`;
+  let argumentSql = `-- Populate the function parameters table\nINSERT INTO function_parameters (id, function_id, name, type) VALUES\n`;
   let extrinsicIdCounter = 0;
+  let argumentIdCounter = 0;
 
   pallets.forEach((pallet) => {
     const moduleName = pallet.name.toString();
@@ -35,17 +37,25 @@ function generateExtrinsicSql(api, pallets) {
             : `No description available for ${functionName} in ${moduleName}.`;
         const realIndex = variant.index; // Use the real index
 
-        console.log(`Module: ${moduleName}`);
-        console.log(`  - ${functionName} (ID: ${realIndex} / Hex: 0x${realIndex.toString(16)})`);
-        console.log(`    Description: ${functionDescription}`);
+        extrinsicSql += `  (${extrinsicIdCounter}, ${moduleIndex}, ${realIndex}, '${functionName}', '${functionDescription.replace(/'/g, "''")}'),\n`;
 
-        sql += `  (${extrinsicIdCounter}, ${moduleIndex}, ${realIndex}, '${functionName}', '${functionDescription.replace(/'/g, "''")}'),\n`;
+        // Parse arguments for the call
+        variant.fields.forEach((field, fieldIndex) => {
+          const argName = field.name?.toString() || `arg${fieldIndex}`;
+          const argType = api.registry.lookup.getTypeDef(field.type).type;
+          argumentSql += `  (${argumentIdCounter}, ${extrinsicIdCounter}, '${argName}', '${argType}'),\n`;
+          argumentIdCounter++;
+        });
+
         extrinsicIdCounter++;
       });
     }
   });
 
-  return sql.trim().slice(0, -1) + ';\n';
+  extrinsicSql = extrinsicSql.trim().slice(0, -1) + ';\n';
+  argumentSql = argumentSql.trim().slice(0, -1) + ';\n';
+
+  return { extrinsicSql, argumentSql };
 }
 
 // Write SQL to file
@@ -59,13 +69,13 @@ async function main() {
   const wsProvider = new WsProvider('wss://gdev.coinduf.eu');
   const api = await ApiPromise.create({ provider: wsProvider });
 
-  console.log('--- Generating SQL for modules and extrinsics ---');
+  console.log('--- Generating SQL for modules, extrinsics, and arguments ---');
 
   const pallets = api.runtimeMetadata.asLatest.pallets;
   const moduleSql = generateModuleSql(pallets);
-  const extrinsicSql = generateExtrinsicSql(api, pallets);
+  const { extrinsicSql, argumentSql } = generateExtrinsicAndArgumentSql(api, pallets);
 
-  const sqlOutput = `${moduleSql}\n${extrinsicSql}`;
+  const sqlOutput = `${moduleSql}\n\n${extrinsicSql}\n\n${argumentSql}`;
   writeSqlToFile('../src/main/resources/db/migration/V2__populate_modules_and_functions.sql', sqlOutput);
 
   process.exit(0);
