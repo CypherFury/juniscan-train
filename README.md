@@ -168,12 +168,15 @@ Kafka uses consumer groups to manage message consumption. Let’s create a group
 ## 📂 Next Steps
 
 - **Configure Juniscan**:
-   - Update the `application.properties` or `application.yml` file in your project with the MariaDB details:
+   - Update the `application.properties` or `application.yml` file in your project with the MariaDB and kafka details:
      ```properties
      spring.datasource.url=jdbc:mysql://localhost:3306/juniscan
      spring.datasource.username=username
      spring.datasource.password=password
      spring.datasource.driver-class-name=org.mariadb.jdbc.Driver
+     
+     spring.kafka.bootstrap-servers=localhost:9092
+     spring.kafka.consumer.group-id=chain-group
      ```
 
 - **Start Juniscan**:
